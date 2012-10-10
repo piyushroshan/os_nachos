@@ -1,0 +1,20 @@
+
+2.
+When Thread::Sleep() is invoked, the thread relinquishes control over the CPU. 
+The thread goes to blocked state waiting for some external event; it cannot execute until it is explicitly put in the ready queue. 
+A blocked thread never resides in the ready queue. 
+It may be waiting on a condition variable, semaphore, etc.
+
+3. 
+
+Nachos PCB is the thread object. 
+It consists of  
+ a) Thread ID
+ b) Thread status
+ c) FDTEntry(File Descripter Table)
+ d) File pointer
+ e) Program counter
+ f) The machine registers
+ g) The user registers and
+ h) The execution stack.
+
