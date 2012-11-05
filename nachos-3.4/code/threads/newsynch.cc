@@ -33,11 +33,11 @@
 //	"initialValue" is the initial value of the semaphore.
 //----------------------------------------------------------------------
 
-Semaphore::Semaphore(char* debugName, int initialValue)
+Semaphore::Semaphore(const char* debugName, int initialValue)
 {
     name = debugName;
     value = initialValue;
-    queue = new List;
+    queue = new List<Thread*>;
 }
 
 //----------------------------------------------------------------------
@@ -67,13 +67,13 @@ Semaphore::P()
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
     
     while (value == 0) { 			// semaphore not available
-	queue->Append((void *)currentThread);	// so go to sleep
+	queue->Append(currentThread);		// so go to sleep
 	currentThread->Sleep();
     } 
     value--; 					// semaphore available, 
 						// consume its value
     
-    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+    interrupt->SetLevel(oldLevel);		// re-enable interrupts
 }
 
 //----------------------------------------------------------------------
@@ -90,120 +90,59 @@ Semaphore::V()
     Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-    thread = (Thread *)queue->Remove();
+    thread = queue->Remove();
     if (thread != NULL)	   // make thread ready, consuming the V immediately
 	scheduler->ReadyToRun(thread);
     value++;
-    (void) interrupt->SetLevel(oldLevel);
+    interrupt->SetLevel(oldLevel);
 }
 
 // Dummy functions -- so we can compile our later assignments 
 // Note -- without a correct implementation of Condition::Wait(), 
 // the test case in the network assignment won't work!
-Lock::Lock(char* debugName) {}
-Lock::~Lock() {}
+Lock::Lock(const char* debugName) {
+	l = new Semaphore(debugName,0);
+}
+Lock::~Lock() {
+	delete l;
+}
 void Lock::Acquire() {
-    l->P();
-    t = currentThread;
+	l->P();
+	t = currentThread;
 }
 void Lock::Release() {
-    l->V();
-    t = NULL;
+	l->V();
+	t = NULL;
 }
 
 bool isHeldByCurrentThread(){
-    return t == currentThread;
+	return t == currentThread;
 }
 
-Condition::Condition(char* debugName, Lock* conditionLock) {
-    name = debugName; 
-    l = Lock;
+Condition::Condition(const char* debugName, Lock* conditionLock) {
+	name = debugName;
+	l = Lock;
 }
-Condition::~Condition() { 
-    delete l;
+Condition::~Condition() {
+	delete l;
 }
-void Condition::Wait(Lock* conditionLock) { 
-    ASSERT(l->isHeldByCurrentThread()); 
-    queue->Append(t);
-    l->Release();
-    t->Sleep();
+void Condition::Wait() {
+	ASSERT(l->isHeldByCurrentThread());
+	queue->Append(t);
+	l->Release();
+	t->Sleep();
 }
-void Condition::Signal(Lock* conditionLock) {
-    ASSERT(l->isHeldByCurrentThread());
-    Thread thread = queue->Remove;
-    if(thread != NULL) scheduler->ReadyToRun(thread);
- }
-void Condition::Broadcast(Lock* conditionLock) {
-    ASSERT(l->isHeldByCurrentThread());
-    Thread thread;
-    while(thread = queue->Remove())
-    {
-        scheduler->ReadyToRun(thread);
-    }
- }
+void Condition::Signal() {
+	ASSERT(l->isHeldByCurrentThread());
+    Thread thread = queue->Remove();
+    if (thread != NULL)	scheduler->ReadyToRun(thread);
 
-
-/*
-
-Reader::Reader(char* DebugName)
-{
-  name = DebugName;
-}   
-
-Reader::~Reader()
-{
+}
+void Condition::Broadcast() {
+	ASSERT(l->isHeldByCurrentThread());
+	Thread thread;
+	while(thread = queue->Remove()){
+		scheduler->ReadyToRun(thread);
+	}
 }
 
-void Reader::read(int num)
-{
-
-    int i=0;
-    // Insert Code here
-    // insert more code here.
-    signal_counter.P();
-    readercount++;
-    if (readercount == 1)
-        signal_writer.P();
-    signal_counter.V();
-    // For the simulation of the reading.  (Do not change)
-    printf("%s starts reading.\n",currentThread->getName());
-    while (i<num)
-    {
-        printf("%s is reading the page of %d in the database\n",currentThread->getName(),i);
-        i++;
-    }
-    printf("%s finishes reading.\n",currentThread->getName());
-    signal_counter.P();
-    readercount --;
-    if (readercount == 0 )
-        signal_writer.V();
-    signal_counter.V();
-}
-
-Writer::Writer(char* DebugName)
-{
-  name = DebugName;
-}
-
-Writer::~Writer()
-{
-}
-
-void Writer::write( int num )
-{
-    int i = 0;
-    // Insert Code here
-
-    signal_writer.P();
-
-    printf("%s starts writing.\n",currentThread->getName());
-    // For the simulation of the writing.  (Do not change)
-    while ( i < num )
-    {
-        printf( "%s is writing the page of %d in the database\n", currentThread->getName(), i );
-        i++;
-    }
-    signal_writer.V();
-    printf("%s finish writing\n",currentThread->getName());
-}
-*/

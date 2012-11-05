@@ -19,7 +19,11 @@
 //    -d causes certain debugging messages to be printed (cf. utility.h)
 //    -rs causes Yield to occur at random (but repeatable) spots
 //    -z prints the copyright message
-//
+
+//e.g. ./threads/nachos -q 2
+
+
+
 //  USER_PROGRAM
 //    -s causes user programs to be executed in single-step mode
 //    -x runs a user program
@@ -59,7 +63,7 @@ extern int testnum;
 
 // External functions used by this file
 
-extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
+extern void ThreadTest(int n), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
@@ -101,7 +105,7 @@ main(int argc, char **argv)
       }
     }
 
-    ThreadTest();
+    ThreadTest(testnum);
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {

@@ -80,6 +80,10 @@ class Lock {
   private:
     char* name;				// for debugging
     // plus some other stuff you'll need to define
+//----------------------------------------------------
+    //Mymodifications
+    Semaphore * l;
+    Thread * t;
 };
 
 // The following class defines a "condition variable".  A condition
@@ -132,5 +136,31 @@ class Condition {
   private:
     char* name;
     // plus some other stuff you'll need to define
+    Lock * l;
+    List<Thread*> *queue;
 };
+
+
+/*
+class Reader{
+ public:
+  Reader(char* DebugName);
+  ~Reader();
+  void read(int num);
+  char* getName();
+
+ private:
+  char* name;
+};
+
+class Writer{
+ public:
+  Writer(char* DebugName);
+  ~Writer();
+  void write(int num);
+  char* getName();
+ private:
+  char* name;
+}; 
+*/
 #endif // SYNCH_H
